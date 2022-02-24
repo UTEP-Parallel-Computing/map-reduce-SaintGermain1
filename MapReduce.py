@@ -8,21 +8,21 @@ def dictOfItems(docList=[]):
     #hate, love, death, night, sleep, time, henry, hamlet, you, my, blood, poison, macbeth, king, heart, honest
 
     with pymp.Parallel() as p:
-        wordLock = p.lock() #acquire a lock for parallel section
+        wordLock = p.lock #acquire a lock for parallel section
         nonSharedDict = {'hate': 0, 'love': 0, 'death': 0 , 'night': 0, 'sleep': 0 , 'time': 0,
                          'henry': 0 , 'hamlet': 0 , 'you': 0 , 'my': 0, 'blood': 0 , 'poison': 0,
                          'macbeth': 0 , 'king': 0 , 'heart': 0 , 'honest': 0}
         words = pymp.shared.dict(nonSharedDict)  #create shared dict
         for doc in p.iterate(docList):
             for word in words:
-                length = len(re.findall(word))
+                length = len(re.findall(word, doc))
                 wordLock.acquire()
-                nonSharedDict[word] = length
+                words[word] = length
                 wordLock.release()
 
-    print(nonSharedDict)
+    print(words)
 
-    return nonSharedDict
+    return words
 
 def main():
     """
