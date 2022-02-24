@@ -23,7 +23,7 @@ def dictOfItems(docList=[]):
             for word in words:
                 length = len(re.findall(word, doc))
                 wordLock.acquire()
-                words[word] = length
+                words[word] += length
                 wordLock.release()
     end = time.clock_gettime( time.CLOCK_MONOTONIC_RAW )
     elapsed = end - start
@@ -43,9 +43,7 @@ def main():
         with open('shakespeare'+str(i)+'.txt', encoding='UTF-8') as f:
             f.seek(0)
             string = f.read();
-            docList.append(string)
-            
-            #wordList = re.compile('hate | love | death | night | sleep | time | henry | hamlet | you | my | blood |poison | macbeth | king | heart | honest', re.IGNORECASE)
+            docList.append(string.lower())            
             i = i+1
             f.close()
     end = time.clock_gettime( time.CLOCK_MONOTONIC_RAW )
