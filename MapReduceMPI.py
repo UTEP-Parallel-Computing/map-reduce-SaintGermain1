@@ -2,13 +2,13 @@
 Name: Garrett Jones
 For: CS 4175
 Description: A parallel program that counts the instances of words across a set of documents
-Instructions: Run in terminal: example line 'mpirun -n 4 python3 MapReduceMPI.py'
+Instructions: Run in terminal: example line 'mpirun -n 1 python3 MapReduceMPI.py'
 """
 
 import time
-import pymp
 import re
 from mpi4py import MPI
+
 
 # get the world communicator
 comm = MPI.COMM_WORLD
@@ -31,6 +31,8 @@ wordCount = {'hate': 0, 'love': 0, 'death': 0, 'night': 0, 'sleep': 0, 'time': 0
 docStrings = []
 # thread 0 distributes the work
 if rank is 0:
+    start_total = time.clock_gettime( time.CLOCK_MONOTONIC_RAW )
+    
     print('Thread 0 distributing')
  
     docsPerThread = len(globalListOfDocs) / size
@@ -38,14 +40,18 @@ if rank is 0:
     # first setup thread 0s slice of the list
     localList = globalListOfDocs[:int( docsPerThread )]
 
-
     #compute thread 0's count:
+    IO_time_start = time.clock_gettime( time.CLOCK_MONOTONIC_RAW )
     for doc in localList:
         with open(doc, encoding='UTF-8') as f:
             f.seek(0)
             string = f.read();
             docStrings.append(string.lower())
             f.close()
+            
+    IO_time_end = time.clock_gettime( time.CLOCK_MONOTONIC_RAW )
+    print(f'\ntotal IO time: {IO_time_end - IO_time_start: 0.4f} seconds')
+
     for doc in docStrings:
         for word in wordCount:
             length = len(re.findall(word, doc))
@@ -67,7 +73,9 @@ if rank is 0:
         for key in wordCount:
             if key in recvd_count:
                 wordCount[key] = wordCount[key] + recvd_count[key]
-    print(wordCount)
+    print(f'\nfinal word count:\n{wordCount}')
+    end_total = time.clock_gettime( time.CLOCK_MONOTONIC_RAW )
+    print(f'\ntotal time: {end_total - start_total: 0.4f} seconds')
 
 #everyone else receives docList and sends word counts
 else:
